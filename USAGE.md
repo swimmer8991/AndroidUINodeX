@@ -1,18 +1,18 @@
-# Accessibility Scanning SDK: Руководство пользователя
+# Accessibility Scanning SDK: User Guide
 
-## Для чего нужен этот SDK?
-Данный SDK предназначен для автоматизированного аудита доступности (accessibility) Android-приложений. Он позволяет:
-- **Находить проблемы UI**: Выявлять мелкие кнопки (Touch Target), отсутствие описаний (Content Description), дубликаты меток и проблемы с контрастом.
-- **Поддержка Compose и Views**: Работает как с классическими View, так и с современным Jetpack Compose.
-- **Автоматизация в тестах**: Можно интегрировать в UI-тесты (Espresso/Compose), чтобы автоматически проверять каждый экран.
-- **Генерация отчетов**: Выдает структурированный JSON с деталями каждой проблемы (тип, строгость, координаты на экране, рекомендации по исправлению).
+## What is this SDK for?
+This SDK is designed for the automated accessibility audit of Android applications. It allows you to:
+- **Find UI issues**: Identify small buttons (Touch Target), missing content descriptions, duplicate labels, and contrast issues.
+- **Support for Compose and Views**: Works with both traditional Views and modern Jetpack Compose.
+- **Automation in tests**: Can be integrated into UI tests (Espresso/Compose) to automatically scan every screen.
+- **Report generation**: Provides a structured JSON with details of each issue (type, severity, screen coordinates, recommendations for fixing).
 
 ---
 
-## Как использовать
+## How to use
 
-### 1. Подключение в проект
-Добавьте зависимости в ваш `build.gradle.kts`:
+### 1. Integration into your project
+Add the dependencies to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
@@ -21,8 +21,8 @@ dependencies {
 }
 ```
 
-### 2. Инициализация и запуск сканирования
-Для работы с SDK в Activity создайте экземпляр `AndroidAccessibilityScanner`, добавьте нужные правила и вызовите `scan()`.
+### 2. Initialization and Running a Scan
+To work with the SDK in an Activity, create an instance of `AndroidAccessibilityScanner`, add the required rules, and call `scan()`.
 
 ```kotlin
 import com.example.accessibility.scan.android.impl.AndroidAccessibilityScanner
@@ -31,28 +31,28 @@ import com.example.accessibility.scan.rules.ContentDescriptionRule
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-// 1. Создание сканера для текущей Activity
+// 1. Create a scanner for the current Activity
 val scanner = AndroidAccessibilityScanner(this)
 
-// 2. Регистрация правил
+// 2. Register rules
 scanner.addRule(TouchTargetRule())
 scanner.addRule(ContentDescriptionRule())
 
-// 3. Запуск сканирования (в корутине)
+// 3. Start scanning (in a coroutine)
 MainScope().launch {
     val result = scanner.scan("MainActivity")
     
-    // Обработка результатов
-    println("Найдено проблем: ${result.issueCount}")
+    // Process results
+    println("Issues found: ${result.issueCount}")
     result.issues.forEach { issue ->
         println("[${issue.severity}] ${issue.summary}: ${issue.description}")
-        println("Как исправить: ${issue.remediation}")
+        println("How to fix: ${issue.remediation}")
     }
 }
 ```
 
-### 3. Интеграция в UI Тесты
-Вы можете проверять доступность экрана прямо во время прогона тестов:
+### 3. Integration into UI Tests
+You can check the screen's accessibility directly during test runs:
 
 ```kotlin
 @Test
@@ -63,7 +63,7 @@ fun testScreenAccessibility() = runTest {
         
         val result = scanner.scan("ProfileScreen")
         
-        // Тест упадет, если найдены критические ошибки
+        // The test will fail if critical issues are found
         if (result.errorCount > 0) {
             throw AssertionError("Accessibility issues found: ${result.issues}")
         }
@@ -73,30 +73,30 @@ fun testScreenAccessibility() = runTest {
 
 ---
 
-## Как протестировать SDK?
+## How to test the SDK?
 
-Вам **необязательно** создавать `.aar` файл для тестирования внутри этого же проекта. Вы можете использовать прямую зависимость от модулей.
+You **do not necessarily** need to create an `.aar` file to test it within the same project. You can use direct dependencies on the modules.
 
-### Вариант 1: Тестирование в том же проекте (Рекомендуется)
-Если вы хотите быстро проверить работу сканера, создайте новый модуль приложения (`app`) в этом же проекте и добавьте зависимость через `project`:
+### Option 1: Testing in the same project (Recommended)
+If you want to quickly verify the scanner's performance, create a new app module (`app`) in the same project and add a dependency via `project`:
 
 ```kotlin
-// build.gradle.kts вашего приложения
+// Your app's build.gradle.kts
 dependencies {
     implementation(project(":sdk:android"))
     implementation(project(":sdk:rules"))
 }
 ```
-Это позволит вам вносить изменения в SDK и сразу видеть их в приложении без пересборки библиотек.
+This allows you to make changes to the SDK and see them immediately in the app without rebuilding libraries.
 
-### Вариант 2: Использование AAR (Для внешних проектов)
-Если вам все же нужно перенести SDK в другой проект в виде бинарного файла:
-1. Откройте терминал в корне проекта.
-2. Выполните сборку: `./gradlew assembleRelease`
-3. Найдите файлы по пути:
+### Option 2: Using AAR (For external projects)
+If you need to move the SDK to another project as a binary file:
+1. Open a terminal in the project root.
+2. Build the project: `./gradlew assembleRelease`
+3. Find the files at:
    - `sdk/android/build/outputs/aar/android-release.aar`
    - `sdk/rules/build/outputs/aar/rules-release.aar`
-4. Скопируйте их в папку `libs` вашего целевого приложения и подключите:
+4. Copy them to the `libs` folder of your target application and include them:
    ```kotlin
    implementation(files("libs/android-release.aar"))
    implementation(files("libs/rules-release.aar"))
@@ -104,8 +104,9 @@ dependencies {
 
 ---
 
-## Ключевые компоненты
-- **UINode**: Единая модель представления элемента интерфейса (независимо от того, View это или Compose).
-- **Scanner**: Основной интерфейс для запуска анализа.
-- **Issue**: Объект, содержащий информацию об ошибке, её типе и способе исправления.
-- **RuleEngine**: Движок, который прогоняет дерево элементов через набор правил.
+## Key Components
+- **UINode**: A unified model for representing UI elements (regardless of whether it's View or Compose).
+- **Scanner**: The main interface for starting the analysis.
+- **Issue**: An object containing information about the error, its type, and the fix recommendation.
+- **RuleEngine**: The engine that processes the element tree through a set of rules.
+
