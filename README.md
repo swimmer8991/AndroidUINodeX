@@ -49,7 +49,3 @@ result.issues.forEach { issue ->
     println("${issue.severity}: ${issue.summary}")
 }
 ```
-
-## 📄 License
-
-This project is intended for internal use. All rights reserved. (Or specify your license here).
